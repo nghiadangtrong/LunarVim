@@ -1,0 +1,55 @@
+name: bump plugins
+
+# on:
+#   schedule:
+#     - cron: "15 13 * * *"
+on:
+  push:
+    branches:
+      - "test-ci"
+
+jobs:
+  metadata-diff:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Install neovim binary
+        uses: rhysd/action-setup-vim@v1
+        with:
+          neovim: true
+          version: v0.6.1
+
+      - name: Install LunarVim
+        timeout-minutes: 4
+        run: |
+          ./utils/installer/install.sh --local --no-install-dependencies
+
+      - name: Run unit-tests
+        # NOTE: make sure to adjust the timeout if you start adding a lot of tests
+        timeout-minutes: 4
+        run: make test
+
+      - name: run upgrade script
+        run: bash ./utils/ci/bump_plugins_version.sh
+
+      - name: Re-run installer
+        timeout-minutes: 4
+        run: |
+          ./utils/installer/install.sh --local --no-install-dependencies
+
+      - name: Re-run unit-tests
+        # NOTE: make sure to adjust the timeout if you start adding a lot of tests
+        timeout-minutes: 4
+        run: make test
+
+      - name: commit changes
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          file_pattern: lua/lvim/plugins.lua
+          branch: test-ci
+          commit_message: "chore: bump plugins version"
