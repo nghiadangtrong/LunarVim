@@ -189,6 +189,14 @@ lvim.plugins = {
       require("spectre").setup()
     end,
   },
+  {
+    "windwp/nvim-ts-autotag",
+    event = "InsertEnter",
+    config = function()
+      require("nvim-ts-autotag").setup()
+    end,
+  },
+  { "p00f/nvim-ts-rainbow" },
 }
 
 -- Autocommands (https://neovim.io/doc/user/autocmd.html)
